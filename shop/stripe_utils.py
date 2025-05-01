@@ -1,5 +1,6 @@
 import stripe
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
