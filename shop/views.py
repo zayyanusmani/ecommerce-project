@@ -147,7 +147,7 @@ def checkout(request):
 
         # Create Stripe payment intent
         intent = create_payment_intent(total)
-        if intent:
+        if intent:            
             return render(request, 'checkout.html', {
                 'order': order,
                 'client_secret': intent.client_secret,

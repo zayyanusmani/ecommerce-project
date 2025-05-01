@@ -9,13 +9,13 @@ def create_payment_intent(amount):
     """
     try:
         intent = stripe.PaymentIntent.create(
-            amount=int(amount * 100),  # Convert to cents
-            currency='inr',  # Indian Rupees
+            amount=int(amount * 100),
+            currency='usd',
             automatic_payment_methods={
                 'enabled': True,
             },
         )
         return intent
     except stripe.error.StripeError as e:
-        # Handle error
+        print('Stripe Error:', e)
         return None 
