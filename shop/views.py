@@ -26,7 +26,6 @@ def product_list(request):
         category = get_object_or_404(Category, slug=category_slug)
         products = products.filter(category=category)
     
-    # Annotate products with average rating
     products = products.annotate(avg_rating=Avg('ratings__rating'))
     
     categories = Category.objects.all()
@@ -127,7 +126,6 @@ def checkout(request):
     total = sum(item.product.price * item.quantity for item in cart_items)
 
     if request.method == 'POST':
-        # Create the order first
         order = Order.objects.create(
             user=request.user,
             status='Pending',
@@ -136,7 +134,6 @@ def checkout(request):
             updated_at=timezone.now()
         )
 
-        # Add items to the order
         for item in cart_items:
             OrderItem.objects.create(
                 order=order,
@@ -145,7 +142,6 @@ def checkout(request):
                 quantity=item.quantity
             )
 
-        # Create Stripe payment intent
         intent = create_payment_intent(total)
         if intent:            
             return render(request, 'checkout.html', {
@@ -157,7 +153,6 @@ def checkout(request):
             messages.error(request, 'There was an error processing your payment. Please try again.')
             return redirect('cart_detail')
 
-    # For GET request, just show the checkout form
     return render(request, 'checkout.html', {
         'cart_items': cart_items,
         'total': total,
@@ -190,7 +185,7 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('login')  # Redirect to login after registration
+            return redirect('login')
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})

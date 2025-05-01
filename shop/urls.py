@@ -11,6 +11,7 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('payment/success/<int:order_id>/', views.payment_success, name='payment_success'),
     path('payment/cancel/<int:order_id>/', views.payment_cancel, name='payment_cancel'),
+    path('webhooks/stripe/', stripe_webhook, name='stripe-webhook'),
     
     # Ratings and Wishlist
     path('product/<int:product_id>/rate/', views.add_rating, name='add_rating'),
