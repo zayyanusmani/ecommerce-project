@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">{{ product.name }}</h2>
+                <p class="text-muted">Category: {{ product.category.name }}</p>
+                <h3 class="text-primary">Rs.{{ product.price }}</h3>
+                <p class="card-text">{{ product.description }}</p>
+                <p>
+                    <strong>Availability:</strong>
+                    {% if product.available %}
+                        <span class="text-success">In Stock ({{ product.stock }} available)</span>
+                    {% else %}
+                        <span class="text-danger">Out of Stock</span>
+                    {% endif %}
+                </p>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">
+                        <strong>Rating:</strong>
+                        {% if product.avg_rating %}
+                            <span class="text-warning">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= product.avg_rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                ({{ product.ratings.count }} reviews)
+                            </span>
+                        {% else %}
+                            <span class="text-muted">No ratings yet</span>
+                        {% endif %}
+                    </div>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-outline-primary btn-sm" id="wishlist-btn" data-product-id="{{ product.id }}">
+                            {% if in_wishlist %}
+                                <i class="bi bi-heart-fill"></i> Remove from Wishlist
+                            {% else %}
+                                <i class="bi bi-heart"></i> Add to Wishlist
+                            {% endif %}
+                        </button>
+                    {% endif %}
+                </div>
+                {% if product.available %}
+                    <form action="{% url 'cart_add' product.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cart-plus"></i> Add to Cart
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h4>Product Details</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>Created:</strong> {{ product.created_at|date:"F d, Y" }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Last Updated:</strong> {{ product.updated_at|date:"F d, Y" }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        {% if user.is_authenticated %}
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h4>Rate this product</h4>
+                    <form method="post" action="{% url 'add_rating' product.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Your Rating</label>
+                            <div class="rating">
+                                {% for i in "54321"|make_list %}
+                                    <input type="radio" name="rating" value="{{ i }}" id="rating{{ i }}"
+                                           {% if user_rating and user_rating.rating == forloop.counter %}checked{% endif %}>
+                                    <label for="rating{{ i }}"><i class="bi bi-star"></i></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Your Review</label>
+                            <textarea class="form-control" id="comment" name="comment" rows="3">{% if user_rating %}{{ user_rating.comment }}{% endif %}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Rating</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h4>Customer Reviews</h4>
+                {% if ratings %}
+                    {% for rating in ratings %}
+                        <div class="border-bottom mb-3 pb-3">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ rating.user.username }}</strong>
+                                <span class="text-warning">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= rating.rating %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <small class="text-muted">{{ rating.created_at|date:"F d, Y" }}</small>
+                            {% if rating.comment %}
+                                <p class="mt-2">{{ rating.comment }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No reviews yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mt-4">
+    <a href="{% url 'product_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Products
+    </a>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('wishlist-btn').addEventListener('click', function() {
+    const productId = this.dataset.productId;
+    fetch(`/product/${productId}/wishlist/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.added) {
+            this.innerHTML = '<i class="bi bi-heart-fill"></i> Remove from Wishlist';
+        } else {
+            this.innerHTML = '<i class="bi bi-heart"></i> Add to Wishlist';
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
