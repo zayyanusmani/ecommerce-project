@@ -21,12 +21,6 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def average_rating(self):
-        ratings = self.ratings.all()
-        if ratings:
-            return sum(rating.rating for rating in ratings) / len(ratings)
-        return 0
-
     def __str__(self):
         return self.name
 
